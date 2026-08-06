@@ -6,7 +6,7 @@ Swagger/OpenAPI teglarini avtomatik generatsiya qilish (AutoSchemaMixin) imkoniy
 """
 
 from drf_spectacular.utils import extend_schema
-from apps.core.base.permissions import FullDjangoModelPermissions
+from apps.base.permissions import FullDjangoModelPermissions
 
 
 class DynamicPermissionMixin:

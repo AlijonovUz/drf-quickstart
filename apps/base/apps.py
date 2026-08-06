@@ -19,7 +19,7 @@ def register_auditlog(sender, **kwargs):
         sender (type[Model]): Tayyor bo'lgan Django modeli klassi.
     """
     from auditlog.registry import auditlog
-    from apps.core.base.models import BaseModel
+    from apps.base.models import BaseModel
 
     if issubclass(sender, BaseModel) and not sender._meta.abstract:
         try:
@@ -32,7 +32,7 @@ class BaseConfig(AppConfig):
     """Base ilovasi konfiguratsiya klassi."""
 
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.core.base"
+    name = "apps.base"
     verbose_name = "Baza"
 
     def ready(self):
@@ -42,7 +42,7 @@ class BaseConfig(AppConfig):
         class_prepared.connect(register_auditlog)
 
         from auditlog.registry import auditlog
-        from apps.core.base.models import BaseModel
+        from apps.base.models import BaseModel
 
         for model in apps.get_models():
             if issubclass(model, BaseModel) and not model._meta.abstract:

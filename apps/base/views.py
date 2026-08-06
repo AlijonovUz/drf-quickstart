@@ -6,7 +6,7 @@ standart CRUD va ReadOnly ViewSet klasslarini taqdim etadi.
 """
 
 from rest_framework import viewsets
-from apps.core.base.mixins import (
+from apps.base.mixins import (
     DynamicPermissionMixin,
     AutoSchemaMixin,
 )

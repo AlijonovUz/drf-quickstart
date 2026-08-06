@@ -1,7 +1,5 @@
 from django.urls import path, include
 
 urlpatterns = [
-    path("", include("apps.core.urls")),
+    path("audits/", include("apps.audits.urls")),
 ]
-
-

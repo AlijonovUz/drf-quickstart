@@ -7,7 +7,7 @@ boshlanish va tugash sanasi (start_date, end_date) bo'yicha filterlarni taqdim e
 
 import django_filters
 from auditlog.models import LogEntry
-from apps.core.base.filters import UUIDInFilter, NumberInFilter
+from apps.base.filters import UUIDInFilter, NumberInFilter
 
 
 class LogEntryFilter(django_filters.FilterSet):

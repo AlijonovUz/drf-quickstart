@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from auditlog.models import LogEntry
 
-from apps.core.base.views import BaseReadOnlyViewSet
+from apps.base.views import BaseReadOnlyViewSet
 
 from .serializers import LogEntrySerializer
 from .filters import LogEntryFilter
