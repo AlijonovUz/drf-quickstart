@@ -47,10 +47,8 @@ class AutoSchemaMixin:
                 tag_name = cls.__name__.replace("ViewSet", "")
         else:
             module_parts = cls.__module__.split(".")
-            if len(module_parts) >= 3 and module_parts[0] == "apps":
-                main_app = module_parts[1].capitalize()
-                sub_app = module_parts[2].capitalize()
-                tag_name = f"{main_app} ({sub_app})"
+            if len(module_parts) >= 2 and module_parts[0] == "apps":
+                tag_name = module_parts[1].capitalize()
             else:
                 tag_name = cls.__name__
                 for suffix in ["APIView", "View"]:
