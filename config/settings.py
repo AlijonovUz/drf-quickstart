@@ -61,7 +61,6 @@ THIRD_PARTY_APPS = [
     "channels",
     "storages",
     "rest_framework",
-    "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "django_celery_beat",
     "drf_spectacular",
@@ -86,7 +85,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
 ]
 
@@ -143,12 +141,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
-AUTHENTICATION_BACKENDS = [
-    "apps.accounts.users.backends.RoleBackend",
-]
-
-AUTH_USER_MODEL = "users.User"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -211,8 +203,8 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Raqamli Sovchi API",
-    "DESCRIPTION": "Raqamli Sovchi platformasi uchun API",
+    "TITLE": "API",
+    "DESCRIPTION": "API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {
