@@ -2,7 +2,7 @@
 Django-filters uchun umumiy va maxsus filter klasslari.
 
 Ushbu modul vergul bilan ajratilgan UUID, son yoki satrlar ro'yxati (in filter)
-bo'yicha saralash imkonini beruvchi klasslarni o'z ichiga oladi.
+hamda yaratilgan vaqt (created_at) bo'yicha saralash klasslarini o'z ichiga oladi.
 """
 
 import django_filters
@@ -25,3 +25,12 @@ class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
 
     pass
 
+
+class BaseFilterSet(django_filters.FilterSet):
+    """
+    Barcha FilterSet klasslari uchun bazaviy filtr.
+    Yaratilgan vaqti (created_at) bo'yicha start_date va end_date berish imkonini beradi.
+    """
+
+    start_date = django_filters.DateTimeFilter(field_name="created_at", lookup_expr="gte")
+    end_date = django_filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
