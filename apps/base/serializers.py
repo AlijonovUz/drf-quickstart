@@ -71,7 +71,7 @@ class BaseModelSerializer(serializers.ModelSerializer):
                         field, "one_to_many", False
                     )
                 related_model = curr_model
-            except Exception:
+            except (AttributeError, Exception):
                 pass
 
             if isinstance(fields_to_serialize, type) and issubclass(
@@ -155,4 +155,3 @@ def get_short_serializer(
 
     DynamicShortSerializer.__name__ = f"{model_class.__name__}ShortSerializer"
     return DynamicShortSerializer
-

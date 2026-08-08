@@ -81,10 +81,8 @@ class BaseModel(models.Model, metaclass=BaseModelMeta):
     def delete(self, *args, **kwargs):
         """Obyektni bazadan o'chirmasdan `is_active=False` holatiga o'tkazadi (Soft Delete)."""
         self.is_active = False
-        self.save()
+        self.save(update_fields=["is_active", "updated_at"])
 
     def hard_delete(self, *args, **kwargs):
         """Obyektni ma'lumotlar bazasidan butunlay o'chiradi."""
         super().delete(*args, **kwargs)
-
-
