@@ -7,8 +7,6 @@ pillow==12.2.0
 # Django REST Framework & Auth
 djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
-django-allauth==65.18.0
-dj-rest-auth==7.2.0
 
 # API Documentation, Filters & Security
 drf-spectacular==0.29.0
@@ -33,7 +31,5 @@ django-storages==1.14.6
 boto3==1.36.0
 
 # Integrations & Server
-requests==2.34.2
-aiogram==3.30.0
 gunicorn==23.0.0
 
