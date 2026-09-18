@@ -1,24 +1,7 @@
-"""
-API ko'rinishlari va ViewSet'lar uchun bazaviy miksinlar (mixins).
-"""
-
 from drf_spectacular.utils import extend_schema
-from apps.base.permissions import FullDjangoModelPermissions
-
-
-class DynamicPermissionMixin:
-    """
-    DRF view'lariga FullDjangoModelPermissions ruxsatnomasini qo'llash uchun miksin.
-    """
-    permission_classes = [FullDjangoModelPermissions]
 
 
 class AutoSchemaMixin:
-    """
-    ViewSet modeli yoki modullar tuzilishidan kelib chiqib, drf-spectacular sxemalari
-    uchun avtomatik ravishda OpenAPI teglarini belgilaydigan miksin.
-    """
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
 
@@ -43,7 +26,11 @@ class AutoSchemaMixin:
                 except Exception:
                     pass
 
-            if not tag_name and hasattr(cls, "serializer_class") and cls.serializer_class:
+            if (
+                not tag_name
+                and hasattr(cls, "serializer_class")
+                and cls.serializer_class
+            ):
                 meta = getattr(cls.serializer_class, "Meta", None)
                 if meta and hasattr(meta, "model"):
                     tag_name = meta.model.__name__
@@ -64,4 +51,3 @@ class AutoSchemaMixin:
 
         if tag_name:
             extend_schema(tags=[tag_name])(cls)
-
