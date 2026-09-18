@@ -13,6 +13,6 @@ class LogEntryViewSet(BaseReadOnlyViewSet):
     serializer_class = LogEntrySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = LogEntryFilter
-    search_fields = ["object_repr", "changes", "actor__full_name", "remote_addr"]
+    search_fields = ["object_repr", "changes", "remote_addr"]
     ordering_fields = ["timestamp", "action"]
     ordering = ["-timestamp"]

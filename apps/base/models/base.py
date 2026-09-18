@@ -12,7 +12,8 @@ class BaseQuerySet(models.QuerySet):
         return self.filter(is_active=False)
 
     def delete(self):
-        return self.update(is_active=False)
+        from django.utils import timezone
+        return self.update(is_active=False, updated_at=timezone.now())
 
     def hard_delete(self):
         return super().delete()

@@ -17,14 +17,6 @@ class AutoSchemaMixin:
             queryset = getattr(cls, "queryset", None)
             if queryset is not None:
                 tag_name = queryset.model.__name__
-            elif hasattr(cls, "get_queryset") and callable(cls.get_queryset):
-                try:
-                    dummy_instance = cls()
-                    qs = dummy_instance.get_queryset()
-                    if hasattr(qs, "model"):
-                        tag_name = qs.model.__name__
-                except Exception:
-                    pass
 
             if (
                 not tag_name

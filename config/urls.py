@@ -6,6 +6,11 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+handler400 = "apps.utils.exceptions.handler400"
+handler403 = "apps.utils.exceptions.handler403"
+handler404 = "apps.utils.exceptions.handler404"
+handler500 = "apps.utils.exceptions.handler500"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("apps.urls")),
