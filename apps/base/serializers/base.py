@@ -1,14 +1,21 @@
+from django.core.exceptions import FieldDoesNotExist
 from rest_framework import serializers
 
 
 class BaseModelSerializer(serializers.ModelSerializer):
+    DEFAULT_HIDDEN_FIELDS = ["is_active"]
+    DEFAULT_READONLY_FIELDS = ["id", "created_at", "updated_at"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if "is_active" in self.fields:
-            self.fields.pop("is_active")
+        hidden_fields = getattr(self.Meta, "hide_fields", self.DEFAULT_HIDDEN_FIELDS)
+        for field_name in hidden_fields:
+            self.fields.pop(field_name, None)
 
-        readonly_fields = ["id", "created_at", "updated_at"]
+        readonly_fields = list(self.DEFAULT_READONLY_FIELDS) + list(
+            getattr(self.Meta, "extra_readonly_fields", [])
+        )
         for field_name in readonly_fields:
             if field_name in self.fields:
                 self.fields[field_name].read_only = True
@@ -21,112 +28,117 @@ class BaseModelSerializer(serializers.ModelSerializer):
             items = [(f, None) for f in related_fields]
 
         for field_name, val in items:
-            source = field_name
-            fields_to_serialize = val
-            exclude_fields = None
-            nested_related = {}
+            self._build_related_field(field_name, val)
 
-            if isinstance(val, dict):
-                source = val.get("source", field_name).replace("__", ".")
-                fields_to_serialize = val.get(
-                    "fields", None if val.get("exclude") else "__all__"
-                )
-                exclude_fields = val.get("exclude", None)
-                nested_related = val.get("related_fields", {})
+        self._restrict_to_view_fields()
 
-            if field_name in self.fields:
-                self.fields[field_name].write_only = True
+    def _build_related_field(self, field_name, val):
+        source = field_name
+        fields_to_serialize = val
+        exclude_fields = None
+        nested_related = {}
+        explicit_source = False
 
-            is_many = False
-            related_model = None
-            try:
-                curr_model = self.Meta.model
-                field = None
-                for part in source.split("."):
-                    field = curr_model._meta.get_field(part)
-                    curr_model = field.related_model
+        if isinstance(val, dict):
+            explicit_source = "source" in val
+            source = val.get("source", field_name).replace("__", ".")
+            fields_to_serialize = val.get(
+                "fields", None if val.get("exclude") else "__all__"
+            )
+            exclude_fields = val.get("exclude", None)
+            nested_related = val.get("related_fields", {})
 
-                if field:
-                    is_many = (
-                        getattr(field, "many_to_many", False)
-                        or getattr(field, "one_to_many", False)
-                        or getattr(field, "auto_created", False)
-                    )
-                related_model = curr_model
-            except (AttributeError, Exception):
-                pass
+        if field_name in self.fields:
+            self.fields[field_name].write_only = True
 
-            if (
-                is_many
-                and hasattr(related_model, "objects")
-                and hasattr(related_model.objects, "active")
-            ):
-                if not (isinstance(val, dict) and "source" in val):
-                    source = f"{source}.active"
+        is_many, related_model = self._resolve_related_model(source)
+        if related_model is None:
+            return
 
-            if isinstance(fields_to_serialize, type) and issubclass(
-                fields_to_serialize, serializers.Serializer
-            ):
-                serializer_class = fields_to_serialize
-            else:
-                if not related_model:
-                    continue
-                serializer_class = get_short_serializer(
-                    related_model,
-                    fields=fields_to_serialize,
-                    exclude=exclude_fields,
-                    nested_related_fields=nested_related,
-                )
+        if (
+            is_many
+            and not explicit_source
+            and hasattr(related_model, "objects")
+            and hasattr(related_model.objects, "active")
+        ):
+            source = f"{source}.active"
 
-            self.fields[f"{field_name}_info"] = serializer_class(
-                source=source, read_only=True, many=is_many
+        if isinstance(fields_to_serialize, type) and issubclass(
+            fields_to_serialize, serializers.Serializer
+        ):
+            serializer_class = fields_to_serialize
+        else:
+            serializer_class = get_short_serializer(
+                related_model,
+                fields=fields_to_serialize,
+                exclude=exclude_fields,
+                nested_related_fields=nested_related,
             )
 
+        self.fields[f"{field_name}_info"] = serializer_class(
+            source=source, read_only=True, many=is_many
+        )
+
+    def _resolve_related_model(self, source):
+        curr_model = self.Meta.model
+        field = None
+        try:
+            for part in source.split("."):
+                field = curr_model._meta.get_field(part)
+                curr_model = field.related_model
+        except (FieldDoesNotExist, AttributeError):
+            return False, None
+
+        if field is None:
+            return False, None
+
+        is_many = (
+            getattr(field, "many_to_many", False)
+            or getattr(field, "one_to_many", False)
+            or getattr(field, "auto_created", False)
+        )
+        return is_many, curr_model
+
+    def _restrict_to_view_fields(self):
         view = self.context.get("view")
-        if view and hasattr(view, "serializer_fields") and view.serializer_fields:
-            allowed = set(view.serializer_fields)
+        allowed = getattr(view, "serializer_fields", None) if view else None
+        if not allowed:
+            return
 
-            for f in view.serializer_fields:
-                allowed.add(f"{f}_info")
+        allowed = set(allowed)
+        allowed |= {f"{f}_info" for f in allowed}
 
-            existing = set(self.fields.keys())
-            for field_name in existing - allowed:
-                self.fields.pop(field_name)
+        for field_name in set(self.fields) - allowed:
+            self.fields.pop(field_name)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
 
-        if "created_at" in ret:
-            val = ret.pop("created_at")
-            ret["created_at"] = val
-        if "updated_at" in ret:
-            val = ret.pop("updated_at")
-            ret["updated_at"] = val
+        for field_name in ("created_at", "updated_at"):
+            if field_name in ret:
+                ret[field_name] = ret.pop(field_name)
         return ret
 
 
 def get_short_serializer(
     model_class, fields=None, exclude=None, nested_related_fields=None
 ):
-    _fields = fields or "__all__" if not exclude else None
-    _exclude = exclude
-    _related_fields = nested_related_fields or {}
-
-    if _exclude:
-
-        class DynamicShortSerializer(BaseModelSerializer):
-            class Meta:
-                model = model_class
-                exclude = _exclude
-                related_fields = _related_fields
-
+    if fields is not None:
+        _fields = fields
+    elif exclude is None:
+        _fields = "__all__"
     else:
+        _fields = None
 
-        class DynamicShortSerializer(BaseModelSerializer):
-            class Meta:
-                model = model_class
-                fields = _fields
-                related_fields = _related_fields
+    meta_attrs = {"model": model_class, "related_fields": nested_related_fields or {}}
+    if exclude:
+        meta_attrs["exclude"] = exclude
+    else:
+        meta_attrs["fields"] = _fields
 
-    DynamicShortSerializer.__name__ = f"{model_class.__name__}ShortSerializer"
-    return DynamicShortSerializer
+    meta_class = type("Meta", (), meta_attrs)
+    return type(
+        f"{model_class.__name__}ShortSerializer",
+        (BaseModelSerializer,),
+        {"Meta": meta_class},
+    )

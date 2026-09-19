@@ -1,5 +1,5 @@
-from apps.base.permissions import FullDjangoModelPermissions
+from apps.base.permissions import DjangoModelPermissions
 
 
 class DynamicPermissionMixin:
-    permission_classes = [FullDjangoModelPermissions]
+    permission_classes = [DjangoModelPermissions]

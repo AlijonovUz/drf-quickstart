@@ -1,5 +1,9 @@
-from .model import FullDjangoModelPermissions
+from .codename import RequireAnyPermission, RequirePermission, RequirePermissions
+from .model import DjangoModelPermissions
 
 __all__ = [
-    "FullDjangoModelPermissions",
+    "DjangoModelPermissions",
+    "RequirePermission",
+    "RequirePermissions",
+    "RequireAnyPermission",
 ]
